@@ -3,10 +3,16 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { iAuthDto } from './dto';
 import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable({})
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwt: JwtService,
+    private config: ConfigService,
+  ) {}
   async register(dto: iAuthDto) {
     try {
       // generate the hash
@@ -51,6 +57,18 @@ export class AuthService {
 
     delete user.hash;
 
-    return user;
+    return { token: this.generateToken(user.id, user.email) };
+  }
+
+  async generateToken(userId: number, email: string): Promise<string> {
+    const secret = this.config.get('JWT_SECRET');
+    const data = {
+      sub: userId,
+      email,
+    };
+    return this.jwt.signAsync(data, {
+      expiresIn: '30m',
+      secret,
+    });
   }
 }
