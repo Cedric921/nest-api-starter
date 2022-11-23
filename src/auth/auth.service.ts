@@ -25,10 +25,7 @@ export class AuthService {
         },
       });
 
-      delete user.hash;
-
-      //return saved user data
-      return user;
+      return { access_token: this.generateToken(user.id, user.email) };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code == 'P2002') {
@@ -55,9 +52,7 @@ export class AuthService {
     // if password matched send back user
     if (!passwordMatched) throw new ForbiddenException(' Credentials error');
 
-    delete user.hash;
-
-    return { token: this.generateToken(user.id, user.email) };
+    return { access_token: this.generateToken(user.id, user.email) };
   }
 
   async generateToken(userId: number, email: string): Promise<string> {
@@ -66,9 +61,11 @@ export class AuthService {
       sub: userId,
       email,
     };
-    return this.jwt.signAsync(data, {
+    const token = await this.jwt.signAsync(data, {
       expiresIn: '30m',
       secret,
     });
+    console.log(token);
+    return token;
   }
 }
