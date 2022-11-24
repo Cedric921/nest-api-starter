@@ -1,24 +1,37 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { AppModule } from '../src/app.module';
 
-describe('AppController (e2e)', () => {
+describe('--App e2e Test --', () => {
   let app: INestApplication;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+  /**
+   * Before starting tests, we need some config:
+   * - import the appModule
+   * - create the app server
+   * - add the global pipes
+   * - init our server created
+   */
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
+    app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+      }),
+    );
 
-    app = moduleFixture.createNestApplication();
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it.todo('it pass');
+
+  /**
+   * After all tests we need to close, to shutdown our server app
+   */
+  afterAll(() => {
+    app.close();
   });
 });
