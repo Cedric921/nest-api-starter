@@ -5,7 +5,7 @@ import * as pactum from 'pactum';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 
-describe('--App e2e Test --', () => {
+describe('APP E2E TEST', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -48,7 +48,7 @@ describe('--App e2e Test --', () => {
     app.close();
   });
 
-  describe('-Auth- ', () => {
+  describe('Auth', () => {
     const dto: iAuthDto = {
       email: 'cedric@test.com',
       password: '123456',
@@ -93,19 +93,52 @@ describe('--App e2e Test --', () => {
     });
 
     describe('Sign In', () => {
+      it('Should throw if email empty', () => {
+        return pactum
+          .spec()
+          .post('/auth/login')
+          .withBody({
+            password: dto.password,
+          })
+          .expectStatus(400);
+      });
+
+      it('Should throw if password empty', () => {
+        return pactum
+          .spec()
+          .post('/auth/login')
+          .withBody({
+            email: dto.email,
+          })
+          .expectStatus(400);
+      });
+
+      it('Should throw if email and password empty', () => {
+        return pactum.spec().post('/auth/login').withBody({}).expectStatus(400);
+      });
+
       it('should sign in', () => {
         return pactum
           .spec()
           .post('/auth/login')
           .withBody(dto)
-          .expectStatus(200);
+          .expectStatus(200)
+          .stores('userAccessToken', 'access_token');
       });
     });
   });
 
-  describe('-User-', () => {
+  describe('User', () => {
     describe('Get me', () => {
-      it.todo('it pass');
+      it('it should get current user', () => {
+        return pactum
+          .spec()
+          .get('/users/me')
+          .withHeaders({
+            Authorization: `Bearer $S{userAccessToken}`,
+          })
+          .expectStatus(200);
+      });
     });
 
     describe('Edit user', () => {
@@ -113,7 +146,7 @@ describe('--App e2e Test --', () => {
     });
   });
 
-  describe('-Bookmark-', () => {
+  describe('---Bookmark---', () => {
     describe('Create bookmark', () => {
       it.todo('it pass');
     });
@@ -126,11 +159,11 @@ describe('--App e2e Test --', () => {
       it.todo('it pass');
     });
 
-    describe('Edit bookmark', () => {
+    describe('Edit bookmark by id', () => {
       it.todo('it pass');
     });
 
-    describe('Delete bookmark', () => {
+    describe('Delete bookmark by id', () => {
       it.todo('it pass');
     });
   });
