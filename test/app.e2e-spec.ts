@@ -1,5 +1,7 @@
+import { iAuthDto } from './../src/auth/dto/auth.dto';
 import { PrismaService } from './../src/prisma/prisma.service';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as pactum from 'pactum';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 
@@ -32,12 +34,12 @@ describe('--App e2e Test --', () => {
 
     /** Initialisation of the app */
     await app.init();
+    await app.listen(5057);
 
     prisma = app.get(PrismaService);
     await prisma.cleanDB();
+    pactum.request.setBaseUrl('http://localhost:5057');
   });
-
-  it.todo('it pass');
 
   /**
    * After all tests we need to close, to shutdown our server app
@@ -47,44 +49,89 @@ describe('--App e2e Test --', () => {
   });
 
   describe('-Auth- ', () => {
+    const dto: iAuthDto = {
+      email: 'cedric@test.com',
+      password: '123456',
+    };
+
     describe('Sign Up', () => {
-      ('');
+      it('Should throw if email empty', () => {
+        return pactum
+          .spec()
+          .post('/auth/register')
+          .withBody({
+            password: dto.password,
+          })
+          .expectStatus(400);
+      });
+
+      it('Should throw if password empty', () => {
+        return pactum
+          .spec()
+          .post('/auth/register')
+          .withBody({
+            email: dto.email,
+          })
+          .expectStatus(400);
+      });
+
+      it('Should throw if email and password empty', () => {
+        return pactum
+          .spec()
+          .post('/auth/register')
+          .withBody({})
+          .expectStatus(400);
+      });
+
+      it('Should sign up', () => {
+        return pactum
+          .spec()
+          .post('/auth/register')
+          .withBody(dto)
+          .expectStatus(201);
+      });
     });
 
     describe('Sign In', () => {
-      ('');
+      it('should sign in', () => {
+        return pactum
+          .spec()
+          .post('/auth/login')
+          .withBody(dto)
+          .expectStatus(200);
+      });
     });
   });
 
   describe('-User-', () => {
     describe('Get me', () => {
-      ('');
+      it.todo('it pass');
     });
 
     describe('Edit user', () => {
-      ('');
+      it.todo('it pass');
     });
   });
 
   describe('-Bookmark-', () => {
     describe('Create bookmark', () => {
-      ('');
+      it.todo('it pass');
     });
 
     describe('Get Bookmarks', () => {
-      ('');
+      it.todo('it pass');
     });
 
     describe('Get Bookmarks by Id', () => {
-      ('');
+      it.todo('it pass');
     });
 
     describe('Edit bookmark', () => {
-      ('');
+      it.todo('it pass');
     });
 
     describe('Delete bookmark', () => {
-      ('');
+      it.todo('it pass');
     });
   });
 });

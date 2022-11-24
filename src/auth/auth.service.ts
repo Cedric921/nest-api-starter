@@ -25,7 +25,7 @@ export class AuthService {
         },
       });
 
-      return { access_token: this.generateToken(user.id, user.email) };
+      return { access_token: await this.generateToken(user.id, user.email) };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code == 'P2002') {
@@ -65,7 +65,6 @@ export class AuthService {
       expiresIn: '30m',
       secret,
     });
-    console.log(token);
     return token;
   }
 }
