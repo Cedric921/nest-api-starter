@@ -52,7 +52,7 @@ export class AuthService {
     // if password matched send back user
     if (!passwordMatched) throw new ForbiddenException(' Credentials error');
 
-    return { access_token: this.generateToken(user.id, user.email) };
+    return { access_token: await this.generateToken(user.id, user.email) };
   }
 
   async generateToken(userId: number, email: string): Promise<string> {
