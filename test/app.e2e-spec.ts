@@ -1,3 +1,5 @@
+import { EditBookmarkDTO } from './../src/bookmark/dto/editBookmark.dto';
+import { CreateBookmarkDTO } from './../src/bookmark/dto/createBookmark.dto';
 import { EditUserDto } from './../src/user/dto/edit-user.dto';
 import { iAuthDto } from './../src/auth/dto/auth.dto';
 import { PrismaService } from './../src/prisma/prisma.service';
@@ -5,6 +7,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as pactum from 'pactum';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
+import { inspect } from 'util';
 
 describe('APP E2E TEST', () => {
   let app: INestApplication;
@@ -138,7 +141,8 @@ describe('APP E2E TEST', () => {
           .withHeaders({
             Authorization: `Bearer $S{userAccessToken}`,
           })
-          .expectStatus(200);
+          .expectStatus(200)
+          .stores('idUser', 'id');
       });
     });
 
@@ -151,37 +155,95 @@ describe('APP E2E TEST', () => {
         };
         return pactum
           .spec()
-          .patch('/users')
+          .patch('/users/$S{idUser}')
           .withHeaders({
             Authorization: `Bearer $S{userAccessToken}`,
           })
           .withBody(dto)
-          .expectStatus(200)
           .expectBodyContains(dto.firstname)
           .expectBodyContains(dto.lastname);
       });
     });
   });
 
-  describe('---Bookmark---', () => {
+  describe('Bookmark', () => {
+    const dto: CreateBookmarkDTO = {
+      title: 'first book',
+      description: 'a first bookmark created',
+      link: 'https://www.wikidata.org/wiki/Special:Contributions/Cedrickarungu921',
+    };
     describe('Create bookmark', () => {
-      it.todo('it pass');
+      it('should return a bookmark created', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({
+            Authorization: `Bearer $S{userAccessToken}`,
+          })
+          .withBody(dto)
+          .expectStatus(201)
+          .expectBodyContains(dto.title)
+          .expectBodyContains(dto.description)
+          .stores('bookmarkId', 'id');
+      });
     });
 
     describe('Get Bookmarks', () => {
-      it.todo('it pass');
+      it('Should return all to do for user', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({
+            Authorization: `Bearer $S{userAccessToken}`,
+          })
+          .expectStatus(200);
+      });
     });
 
-    describe('Get Bookmarks by Id', () => {
-      it.todo('it pass');
+    describe('Get Bookmark by Id', () => {
+      it('should return a single bookmark', () => {
+        return pactum
+          .spec()
+          .get(`/bookmarks/{id}`)
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: `Bearer $S{userAccessToken}`,
+          })
+          .expectStatus(200);
+      });
     });
 
     describe('Edit bookmark by id', () => {
-      it.todo('it pass');
+      const dto: EditBookmarkDTO = {
+        description: 'a first bookmark edited',
+        link: 'https://www.wikidata.org/wiki/Special:Contributions/Cedrickarungu921',
+      };
+      it('should edit a bookmark given by id', () => {
+        return pactum
+          .spec()
+          .patch(`/bookmarks/{id}`)
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: `Bearer $S{userAccessToken}`,
+          })
+          .withBody(dto)
+          .expectBodyContains(dto.link)
+          .expectBodyContains(dto.description)
+          .expectStatus(200);
+      });
     });
 
     describe('Delete bookmark by id', () => {
-      it.todo('it pass');
+      it('should delete a bookmark ', () => {
+        return pactum
+          .spec()
+          .delete(`/bookmarks/{id}`)
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: `Bearer $S{userAccessToken}`,
+          })
+          .expectStatus(204);
+      });
     });
   });
 });
